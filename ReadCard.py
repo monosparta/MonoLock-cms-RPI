@@ -9,18 +9,19 @@ import serial.rs485
 import requests
 import json
 token = ""
+url = "https://dd82-211-72-239-241.ngrok.io/"
 while 1:
     barcode = input("please input:")
-    
+
     while 1:
         res = requests.post(
-            'https://dd82-211-72-239-241.ngrok.io/api/unlock',
+            url+'api/unlock',
             headers={'token': token},
             data={"cardId": barcode}
         )
         if(res.status_code == 401):
             r = requests.post(
-                'https://dd82-211-72-239-241.ngrok.io/api/login',
+                url+'api/login',
                 data={
                     "email": "002@example.com",
                     "password": "pi"

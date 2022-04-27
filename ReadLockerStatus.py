@@ -23,11 +23,12 @@ boardNum = 2
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
 
+host="192.168.168.174"
 
 client = mqtt.Client()
 client.on_connect = on_connect
 client.username_pw_set("pi", "00010000")
-client.connect("127.0.0.1", 1883, 60)
+client.connect(host, 1883, 60)
 
 # # client.loop_forever()
 
