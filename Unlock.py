@@ -29,15 +29,16 @@ def on_message(client, userdata, data):
 
     while 1:
         try:
-            ser = serial.rs485.RS485(port='COM3', baudrate=9600)
+            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
+            ser.flushInput()  # flush input buffer
             ser.write(msg)
+            ser.flushOutput()  # flush output buffer
             print('output:', ser.read(5))
             ser.close()
             break
         except Exception as e:
             print(e)
-            i+=1
             sleep(0.5)
 
 
@@ -45,11 +46,14 @@ def on_message(client, userdata, data):
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
 
+def on_disconnect(client, userdata, flags):
+    print("disconnect")
 
-host="192.168.168.174"
+host="192.168.168.156"
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
+client.on_disconnect = on_disconnect
 client.username_pw_set("pi", "00010000")
 client.connect(host, 1883, 60)
 client.subscribe("locker/unlock", qos=0)

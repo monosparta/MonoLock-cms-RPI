@@ -3,7 +3,7 @@
 import paho.mqtt.client as mqtt
 import asyncio
 import evdev
-from evdev import categorize, ecodes
+from evdev import categorize, ecode
 from evdev import UInput, InputDevice
 from keyevent_reader import KeyEventReader
 import serial.rs485
@@ -47,14 +47,14 @@ for device in devices:
             if barcode is not None and len(barcode) > 0:
                 # client.publish('raspberry/topic', payload=barcode, qos=0, retain=False)
                 print(barcode)
-                ser = serial.rs485.RS485(port='/dev/ttyS0', baudrate=9600)
-                ser.rs485_mode = serial.rs485.RS485Settings(False, True)
-                if barcode == '000':
-                    print("error!")
+                # ser = serial.rs485.RS485(port='/dev/ttyS0', baudrate=9600)
+                # ser.rs485_mode = serial.rs485.RS485Settings(False, True)
+                # if barcode == '000':
+                #     print("error!")
 
-                elif barcode == '0123456789':
-                    # 1 1
-                    ser.write(b'\x8a\x01\x01\x11\x9b')
+                # elif barcode == '0123456789':
+                #     # 1 1
+                #     ser.write(b'\x8a\x01\x01\x11\x9b')
 
     except Exception as e:
         print(e)

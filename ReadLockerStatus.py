@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from array import array
-from asyncio.windows_events import NULL
+# from asyncio.windows_events import NULL
 from re import S
 from socket import timeout
 import paho.mqtt.client as mqtt
@@ -11,6 +11,7 @@ import requests
 import re
 from time import sleep
 
+host="192.168.168.156"
 pw = 'hP4VspmxA6YtIltVtzXioPY3xixgrvxLTMpvkkefWpRjmgpRMdGZ1FtoWWNx'
 
 boardNum = 2
@@ -23,7 +24,6 @@ boardNum = 2
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
 
-host="192.168.168.174"
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -34,7 +34,7 @@ client.connect(host, 1883, 60)
 
 
 def makeRS485Msg(lockerEncoding):
-    data = ['80', lockerEncoding[0:2], lockerEncoding[2:4], '33']
+    data = ['80', lockerEncoding, '00', '33']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])
     msg = bytes.fromhex(" ".join(data))
@@ -54,12 +54,12 @@ def check(data):
 def callStatus(msg):
     while 1:
         try:
-            ser = serial.rs485.RS485(port='COM3', baudrate=9600)
+            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
-            ser.write(msg)
             ser.flushInput()  # flush input buffer
-            res = re.findall(r'.{2}', ser.read(7).hex())
+            ser.write(msg)
             ser.flushOutput()  # flush output buffer
+            res = re.findall(r'.{2}', ser.read(7).hex())
             ser.close()
             return res
         except Exception as e:
@@ -88,9 +88,9 @@ while n:
     # n -= 1
     ans = []
     for i in range(1, boardNum+1):
-        msg = makeRS485Msg(str(i).zfill(2)+'00')
+        msg = makeRS485Msg(str(i).zfill(2))
         res = callStatus(msg)
         if(check(res) == 0):
             ans.extend(makeMqttMsg(i, res[4]))
     pub(ans)
-    sleep(5)
+    sleep(3)
