@@ -10,16 +10,20 @@ import serial.rs485
 import requests
 import re
 from time import sleep
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-host="192.168.168.156"
-pw = 'hP4VspmxA6YtIltVtzXioPY3xixgrvxLTMpvkkefWpRjmgpRMdGZ1FtoWWNx'
-
-boardNum = 2
+mqtt_host= os.getenv("MQTT_HOST")
+mqtt_port= int(os.getenv("MQTT_PORT"))
+boardNum = int(os.getenv("BOARD_NUM"))
 
 # async def print_events(device):
 #     _keyevent_reader = KeyEventReader()
 #     print(_keyevent_reader.read_line(device))
 
+def on_disconnect(client, userdata, flags):
+    print("disconnect")
 
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
@@ -27,8 +31,9 @@ def on_connect(client, userdata, flags, rc):
 
 client = mqtt.Client()
 client.on_connect = on_connect
+client.on_disconnect = on_disconnect
 client.username_pw_set("pi", "00010000")
-client.connect(host, 1883, 60)
+client.connect(mqtt_host, mqtt_port, 60)
 
 # # client.loop_forever()
 

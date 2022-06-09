@@ -7,6 +7,13 @@ import paho.mqtt.client as mqtt
 import asyncio
 import serial.rs485
 import requests
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+mqtt_host= os.getenv("MQTT_HOST")
+mqtt_port= int(os.getenv("MQTT_PORT"))
 
 
 def on_message(client, userdata, data):
@@ -49,12 +56,11 @@ def on_connect(client, userdata, flags, rc):
 def on_disconnect(client, userdata, flags):
     print("disconnect")
 
-host="192.168.168.156"
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
 client.username_pw_set("pi", "00010000")
-client.connect(host, 1883, 60)
+client.connect(mqtt_host, mqtt_port, 60)
 client.subscribe("locker/unlock", qos=0)
 client.loop_forever()
