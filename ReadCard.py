@@ -24,6 +24,9 @@ _keyevent_reader = KeyEventReader()
 
 for device in devices:
 
+    print(device.info.vendor)
+    print(device.info.product)
+
     if device.info.vendor != 0xffff or device.info.product != 0x0035:
         continue
 
