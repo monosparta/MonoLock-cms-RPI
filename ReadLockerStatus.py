@@ -16,6 +16,8 @@ load_dotenv()
 
 mqtt_host= os.getenv("MQTT_HOST")
 mqtt_port= int(os.getenv("MQTT_PORT"))
+mqtt_username= os.getenv("MQTT_USERNAME")
+mqtt_passsword= os.getenv("MQTT_PASSWORD")
 boardNum = int(os.getenv("BOARD_NUM"))
 
 # async def print_events(device):
@@ -32,17 +34,17 @@ def on_connect(client, userdata, flags, rc):
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_disconnect = on_disconnect
-client.username_pw_set("pi", "00010000")
+client.username_pw_set(mqtt_username, mqtt_passsword)
 client.connect(mqtt_host, mqtt_port, 60)
 
 # # client.loop_forever()
 
 
-def makeRS485Msg(lockerEncoding):
-    data = ['80', lockerEncoding, '00', '33']
+def makeRS485Msg(board):
+    data = ['80', str(board).zfill(2), '00', '33']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])
-    msg = bytes.fromhex(" ".join(data))
+    msg = bytes.fromhex("".join(data))
     return msg
 
 
@@ -56,7 +58,7 @@ def check(data):
     return checksum
 
 
-def callStatus(msg):
+def readStatus(msg):
     while 1:
         try:
             ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
@@ -66,7 +68,8 @@ def callStatus(msg):
             ser.flushOutput()  # flush output buffer
             res = re.findall(r'.{2}', ser.read(7).hex())
             ser.close()
-            return res
+            if(check(res) == 0):
+                return res
         except Exception as e:
             print(e)
             sleep(0.5)
@@ -93,9 +96,8 @@ while n:
     # n -= 1
     ans = []
     for i in range(1, boardNum+1):
-        msg = makeRS485Msg(str(i).zfill(2))
-        res = callStatus(msg)
-        if(check(res) == 0):
-            ans.extend(makeMqttMsg(i, res[4]))
+        msg = makeRS485Msg(i)
+        res = readStatus(msg)
+        ans.extend(makeMqttMsg(i, res[4])) #1~8個鎖
     pub(ans)
     sleep(3)
