@@ -32,9 +32,10 @@ def writeRS485Msg(msg):
         try:
             ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
+            ser.timeout = 2
             ser.flushInput()  # flush input buffer
-            ser.write(msg)
             ser.flushOutput()  # flush output buffer
+            ser.write(msg)
             lockstatus = re.findall(r'.{2}', ser.read(5).hex())
             ser.close()
             if(check(lockstatus) == 0):
@@ -45,14 +46,14 @@ def writeRS485Msg(msg):
         sleep(0.5)
 
 def pub(msg):
-    client.publish('locker/unlock', payload=",".join(msg),
+    client.publish('locker/unlock', payload=msg,
                    qos=0, retain=False)
 
 def on_message(client, userdata, data):
     message = data.payload.decode()
     print("Received message " + message + " on topic '"
           + data.topic + "' with QoS " + str(data.qos))
-    if re.findall(r'[^\d]', message):
+    if not re.findall(r'^\d{4}$', message):
         return 0
     # data = ['8a', '01', '01', '11']
     data = ['8a', message[0:2], message[2:4], '11']
@@ -63,12 +64,13 @@ def on_message(client, userdata, data):
     msg = bytes.fromhex("".join(data))
     for i in range(3):
         lockstatus = writeRS485Msg(msg)
-        if(lockstatus[2] == '00'):
-            pub("Success")
+        print(lockstatus)
+        if(lockstatus[3] == '00'):
+            pub(message + ",0")
             break
         sleep(0.5)
         if(i==2):
-            pub("Failed")
+            pub(message + ",1")
     return 0
 
 def on_connect(client, userdata, flags, rc):

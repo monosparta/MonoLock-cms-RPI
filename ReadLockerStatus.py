@@ -63,9 +63,10 @@ def readStatus(msg):
         try:
             ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
+            ser.timeout = 2
             ser.flushInput()  # flush input buffer
-            ser.write(msg)
             ser.flushOutput()  # flush output buffer
+            ser.write(msg)
             res = re.findall(r'.{2}', ser.read(7).hex())
             ser.close()
             if(check(res) == 0):
@@ -76,7 +77,7 @@ def readStatus(msg):
 
 def makeMqttMsg(board, data):
     bindata = format(int(data, 16), "08b")
-    print(bindata)
+    print(board, bindata)
     ans = []
     for i in range(8):
         if bindata[7-i] == '0':
@@ -87,7 +88,7 @@ def makeMqttMsg(board, data):
 
 
 def pub(msg):
-    client.publish('locker/status', payload=",".join(msg),
+    client.publish('locker/status', payload=msg,
                    qos=0, retain=False)
 
 
@@ -99,5 +100,5 @@ while n:
         msg = makeRS485Msg(i)
         res = readStatus(msg)
         ans.extend(makeMqttMsg(i, res[4])) #1~8個鎖
-    pub(ans)
+    pub(",".join(ans))
     sleep(3)

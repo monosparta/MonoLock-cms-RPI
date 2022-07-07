@@ -52,15 +52,17 @@ def writeRS485Msg(msg):
         try:
             ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
+            ser.timeout = 2
             ser.flushInput()  # flush input buffer
-            ser.write(msg)
             ser.flushOutput()  # flush output buffer
+            ser.write(msg)
             lockstatus = re.findall(r'.{2}', ser.read(5).hex())
             ser.close()
-            if(check(lockstatus) == 0):
+            print(lockstatus,"write")
+            if(lockstatus != [] and check(lockstatus) == 0):
                 return lockstatus
         except Exception as e:
-            print(e)
+            print("error",e)
 
         sleep(0.5)
   
@@ -68,7 +70,7 @@ def pub(msg):
     client = mqtt.Client()
     client.username_pw_set(mqtt_username, mqtt_passsword)
     client.connect(mqtt_host, mqtt_port, 60)
-    client.publish('locker/error', payload=",".join(msg),
+    client.publish('locker/error', payload=msg,
                    qos=0, retain=False)
     client.disconnect()
 
@@ -101,12 +103,13 @@ for device in devices:
                 msg = makeRS485Msg(res.text)
                 for i in range(3):
                     lockstatus = writeRS485Msg(msg)
-                    if(lockstatus[2] == '00'):
+                    print(lockstatus[3])
+                    if(lockstatus[3] == '00'):
                         break
                     sleep(0.5)
                     if(i==2):
                         pub(res.text)
-
+                print("break")
     except Exception as e:
         print(e)
     finally:
@@ -114,3 +117,4 @@ for device in devices:
             device.ungrab()
         except Exception as e:
             pass
+    
