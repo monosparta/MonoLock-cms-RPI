@@ -16,7 +16,9 @@ from dotenv import load_dotenv
 load_dotenv()
 token = os.getenv("TOKEN")
 sever_host = os.getenv("SERVER_HOST")
-sever_port = os.getenv("SERVER_PORT")
+sever_port = ""
+if(os.getenv("SERVER_PORT")):
+    sever_port = ":" + os.getenv("SERVER_PORT")
 
 devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
 
@@ -40,7 +42,7 @@ for device in devices:
             if barcode is not None and len(barcode) > 0:
                 print(barcode)
                 res = requests.post(
-                    sever_host + ":" + sever_port +'/api/RPIunlock',
+                    sever_host + sever_port +'/api/RPIunlock',
                     headers={'token': token},
                     data={"cardId": barcode}
                 )
