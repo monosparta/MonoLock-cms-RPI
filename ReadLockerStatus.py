@@ -69,7 +69,7 @@ def readStatus(msg):
             ser.write(msg)
             res = re.findall(r'.{2}', ser.read(7).hex())
             ser.close()
-            if(check(res) == 0):
+            if( len(res) > 0 and check(res) == 0 ):
                 return res
         except Exception as e:
             print(e)

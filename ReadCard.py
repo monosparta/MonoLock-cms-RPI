@@ -59,10 +59,14 @@ def writeRS485Msg(msg):
             lockstatus = re.findall(r'.{2}', ser.read(5).hex())
             ser.close()
             print(lockstatus,"write")
-            if(lockstatus != [] and check(lockstatus) == 0):
+            if( len(lockstatus) > 0 and check(lockstatus) == 0 ):
                 return lockstatus
         except Exception as e:
             print("error",e)
+            try:
+                ser.close()
+            except Exception as e:
+                pass
 
         sleep(0.5)
   
