@@ -15,12 +15,13 @@ import re
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 token = os.getenv("TOKEN")
 sever_host = os.getenv("SERVER_HOST")
-sever_port = ""
-if(os.getenv("SERVER_PORT")):
-    sever_port = ":" + os.getenv("SERVER_PORT")
 sever_port = os.getenv("SERVER_PORT")
+if(sever_port != ""):
+    sever_port = ":" + sever_port
+
 mqtt_host= os.getenv("MQTT_HOST")
 mqtt_port= int(os.getenv("MQTT_PORT"))
 mqtt_username= os.getenv("MQTT_USERNAME")
