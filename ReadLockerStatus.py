@@ -19,6 +19,7 @@ mqtt_port= int(os.getenv("MQTT_PORT"))
 mqtt_username= os.getenv("MQTT_USERNAME")
 mqtt_passsword= os.getenv("MQTT_PASSWORD")
 boardNum = int(os.getenv("BOARD_NUM"))
+serial_port = os.getenv("SERIAL_PORT")
 
 # async def print_events(device):
 #     _keyevent_reader = KeyEventReader()
@@ -61,7 +62,7 @@ def check(data):
 def readStatus(msg):
     while 1:
         try:
-            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
+            ser = serial.rs485.RS485(port=serial_port, baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
             ser.timeout = 2
             ser.flushInput()  # flush input buffer
@@ -85,7 +86,6 @@ def makeMqttMsg(board, data):
                 ans.append("{:s}{:s}".format(
                     hex(board).lstrip('0x').zfill(2),
                     hex((j+1)+(i-4)*-8).lstrip('0x').zfill(2)))
-    print(ans)
     return ans
 
 
