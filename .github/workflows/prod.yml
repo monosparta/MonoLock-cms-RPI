@@ -12,12 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-            echo TOKEN="${{ secrets.TOKEN }}" >> ./.env
-            echo SERVER_HOST="${{ secrets.SERVER_HOST }}" >> ./.env
-            echo SERVER_PORT="${{ secrets.SERVER_PORT }}" >> ./.env
-            echo MQTT_HOST="${{ secrets.MQTT_HOST }}" >> ./.env
-            echo MQTT_PORT="${{ secrets.MQTT_PORT }}" >> ./.env
-            echo MQTT_USERNAME="${{ secrets.MQTT_USERNAME }}" >> ./.env
-            echo MQTT_PASSWORD="${{ secrets.MQTT_PASSWORD }}" >> ./.env
-            echo BOARD_NUM="${{ secrets.BOARD_NUM }}" >> ./.env
+            echo TOKEN="${{ secrets.TOKEN }}" >> .env
+            echo SERVER_HOST="${{ secrets.SERVER_HOST }}" >> .env
+            echo SERVER_PORT="${{ secrets.SERVER_PORT }}" >> .env
+            echo MQTT_HOST="${{ secrets.MQTT_HOST }}" >> .env
+            echo MQTT_PORT="${{ secrets.MQTT_PORT }}" >> .env
+            echo MQTT_USERNAME="${{ secrets.MQTT_USERNAME }}" >> .env
+            echo MQTT_PASSWORD="${{ secrets.MQTT_PASSWORD }}" >> .env
+            echo BOARD_NUM="${{ secrets.SERIAL_PORT }}" >> .env
+            echo BOARD_NUM="${{ secrets.BOARD_NUM }}" >> .env
       - run: rsync -avz -e 'ssh' ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
