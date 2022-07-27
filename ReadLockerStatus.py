@@ -76,14 +76,16 @@ def readStatus(msg):
             sleep(0.5)
 
 def makeMqttMsg(board, data):
-    bindata = format(int(data, 16), "08b")
-    print(board, bindata)
     ans = []
-    for i in range(8):
-        if bindata[7-i] == '0':
-            ans.append("{:s}{:s}".format(
-                hex(board).lstrip('0x').zfill(2),
-                hex(i+1).lstrip('0x').zfill(2)))
+    for i in range(4,1,-1):
+        bindata = format(int(data[i], 16), "08b")
+        print(board, bindata)
+        for j in range(8):
+            if bindata[7-j] == '0':
+                ans.append("{:s}{:s}".format(
+                    hex(board).lstrip('0x').zfill(2),
+                    hex((j+1)+(i-4)*-8).lstrip('0x').zfill(2)))
+    print(ans)
     return ans
 
 
@@ -99,6 +101,6 @@ while n:
     for i in range(1, boardNum+1):
         msg = makeRS485Msg(i)
         res = readStatus(msg)
-        ans.extend(makeMqttMsg(i, res[4])) #1~8個鎖
+        ans.extend(makeMqttMsg(i, res))
     pub(",".join(ans))
     sleep(3)
