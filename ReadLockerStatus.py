@@ -19,6 +19,7 @@ mqtt_port= int(os.getenv("MQTT_PORT"))
 mqtt_username= os.getenv("MQTT_USERNAME")
 mqtt_passsword= os.getenv("MQTT_PASSWORD")
 boardNum = int(os.getenv("BOARD_NUM"))
+serial_port = os.getenv("SERIAL_PORT")
 
 # async def print_events(device):
 #     _keyevent_reader = KeyEventReader()
@@ -61,7 +62,7 @@ def check(data):
 def readStatus(msg):
     while 1:
         try:
-            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
+            ser = serial.rs485.RS485(port=serial_port, baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
             ser.timeout = 2
             ser.flushInput()  # flush input buffer
@@ -76,14 +77,15 @@ def readStatus(msg):
             sleep(0.5)
 
 def makeMqttMsg(board, data):
-    bindata = format(int(data, 16), "08b")
-    print(board, bindata)
     ans = []
-    for i in range(8):
-        if bindata[7-i] == '0':
-            ans.append("{:s}{:s}".format(
-                hex(board).lstrip('0x').zfill(2),
-                hex(i+1).lstrip('0x').zfill(2)))
+    for i in range(4,1,-1):
+        bindata = format(int(data[i], 16), "08b")
+        print(board, bindata)
+        for j in range(8):
+            if bindata[7-j] == '0':
+                ans.append("{:s}{:s}".format(
+                    hex(board).lstrip('0x').zfill(2),
+                    hex((j+1)+(i-4)*-8).lstrip('0x').zfill(2)))
     return ans
 
 
@@ -99,6 +101,6 @@ while n:
     for i in range(1, boardNum+1):
         msg = makeRS485Msg(i)
         res = readStatus(msg)
-        ans.extend(makeMqttMsg(i, res[4])) #1~8個鎖
+        ans.extend(makeMqttMsg(i, res))
     pub(",".join(ans))
     sleep(3)

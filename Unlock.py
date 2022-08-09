@@ -17,6 +17,7 @@ mqtt_host= os.getenv("MQTT_HOST")
 mqtt_port= int(os.getenv("MQTT_PORT"))
 mqtt_username= os.getenv("MQTT_USERNAME")
 mqtt_passsword= os.getenv("MQTT_PASSWORD")
+serial_port = os.getenv("SERIAL_PORT")
 
 def check(data):
     checksum = 0
@@ -30,7 +31,7 @@ def check(data):
 def writeRS485Msg(msg):
     while 1:
         try:
-            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
+            ser = serial.rs485.RS485(port=serial_port, baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
             ser.timeout = 2
             ser.flushInput()  # flush input buffer

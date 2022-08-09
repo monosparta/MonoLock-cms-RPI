@@ -15,16 +15,18 @@ import re
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 token = os.getenv("TOKEN")
 sever_host = os.getenv("SERVER_HOST")
-sever_port = ""
-if(os.getenv("SERVER_PORT")):
-    sever_port = ":" + os.getenv("SERVER_PORT")
 sever_port = os.getenv("SERVER_PORT")
+if(sever_port != ""):
+    sever_port = ":" + sever_port
+
 mqtt_host= os.getenv("MQTT_HOST")
 mqtt_port= int(os.getenv("MQTT_PORT"))
 mqtt_username= os.getenv("MQTT_USERNAME")
 mqtt_passsword= os.getenv("MQTT_PASSWORD")
+serial_port = os.getenv("SERIAL_PORT")
 
 devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
 
@@ -50,7 +52,7 @@ def check(data):
 def writeRS485Msg(msg):
     while 1:
         try:
-            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
+            ser = serial.rs485.RS485(port=serial_port, baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
             ser.timeout = 2
             ser.flushInput()  # flush input buffer
