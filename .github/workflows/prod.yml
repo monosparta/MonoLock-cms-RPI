@@ -21,5 +21,11 @@ jobs:
             echo MQTT_PASSWORD="${{ secrets.MQTT_PASSWORD }}" >> .env
             echo SERIAL_PORT="${{ secrets.SERIAL_PORT }}" >> .env
             echo BOARD_NUM="${{ secrets.BOARD_NUM }}" >> .env
-      - run: pm2 restart all
       - run: rsync -avz -e 'ssh' ./ ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.DEPLOY_PATH }}
+      - uses: garygrossgarten/github-action-ssh@release
+        with:
+          command: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            pm2 restart all
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
