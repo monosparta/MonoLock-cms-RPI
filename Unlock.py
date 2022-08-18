@@ -54,7 +54,7 @@ def on_message(client, userdata, data):
     message = data.payload.decode()
     print("Received message " + message + " on topic '"
           + data.topic + "' with QoS " + str(data.qos))
-    if not re.findall(r'^\d{4}$', message):
+    if not re.findall(r'^[\dABCDEF]{4}$', message):
         return 0
     # data = ['8a', '01', '01', '11']
     data = ['8a', message[0:2], message[2:4], '11']
