@@ -42,7 +42,7 @@ client.connect(mqtt_host, mqtt_port, 60)
 
 
 def makeRS485Msg(board):
-    data = ['80', str(board).zfill(2), '00', '33']
+    data = ['80', hex(board).lstrip('0x').zfill(2), '00', '33']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])
     msg = bytes.fromhex("".join(data))
