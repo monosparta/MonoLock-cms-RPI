@@ -1,13 +1,7 @@
 #!/usr/bin/python3
 
-from array import array
-# from asyncio.windows_events import NULL
-from re import S
-from socket import timeout
 import paho.mqtt.client as mqtt
-import asyncio
 import serial.rs485
-import requests
 import re
 from time import sleep
 import os
@@ -21,10 +15,6 @@ mqtt_passsword= os.getenv("MQTT_PASSWORD")
 boardNum = int(os.getenv("BOARD_NUM"))
 serial_port = os.getenv("SERIAL_PORT")
 
-# async def print_events(device):
-#     _keyevent_reader = KeyEventReader()
-#     print(_keyevent_reader.read_line(device))
-
 def on_disconnect(client, userdata, flags):
     print("disconnect")
 
@@ -37,9 +27,6 @@ client.on_connect = on_connect
 client.on_disconnect = on_disconnect
 client.username_pw_set(mqtt_username, mqtt_passsword)
 client.connect(mqtt_host, mqtt_port, 60)
-
-# # client.loop_forever()
-
 
 def makeRS485Msg(board):
     data = ['80', hex(board).lstrip('0x').zfill(2), '00', '33']
@@ -93,10 +80,7 @@ def pub(msg):
     client.publish('locker/status', payload=msg,
                    qos=0, retain=False)
 
-
-n = 1
-while n:
-    # n -= 1
+while True:
     ans = []
     for i in range(1, boardNum+1):
         msg = makeRS485Msg(i)

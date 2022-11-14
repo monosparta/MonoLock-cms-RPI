@@ -1,12 +1,8 @@
 #!/usr/bin/python3
 
-from array import array
-from lib2to3.pgen2 import token
 from time import sleep
 import paho.mqtt.client as mqtt
-import asyncio
 import serial.rs485
-import requests
 import re
 import os
 from dotenv import load_dotenv
@@ -56,7 +52,6 @@ def on_message(client, userdata, data):
           + data.topic + "' with QoS " + str(data.qos))
     if not re.findall(r'^[\da-fA-F]{4}$', message):
         return 0
-    # data = ['8a', '01', '01', '11']
     data = ['8a', message[0:2], message[2:4], '11']
 
     checksum = check(data)

@@ -2,12 +2,8 @@
 
 import json
 from py532lib.i2c import Pn532_i2c
-from array import array
-from itertools import dropwhile
-# from lib2to3.pgen2 import token
 from time import sleep
 import paho.mqtt.client as mqtt
-import asyncio
 import serial.rs485
 import requests
 import re
@@ -30,7 +26,6 @@ pn532.SAMconfigure()
 
 
 def makeRS485Msg(lockerEncoding):
-    # data = ['8a', '01', '01', '11']
     data = ['8a', lockerEncoding[0:2], lockerEncoding[2:4], '11']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])

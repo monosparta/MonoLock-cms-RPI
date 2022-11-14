@@ -1,14 +1,9 @@
 #!/usr/bin/python3
 
-from array import array
-from itertools import dropwhile
-# from lib2to3.pgen2 import token
 from time import sleep
 import paho.mqtt.client as mqtt
-import asyncio
 import serial.rs485
 import evdev
-from evdev import InputDevice
 from KeyeventReader import KeyEventReader
 import requests
 import re
