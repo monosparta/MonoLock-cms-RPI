@@ -82,7 +82,8 @@ def publish(msg, status):
     client.publish('locker/error', payload=f'{msg}, {status}',
                    qos=0, retain=False)
     client.disconnect()
-    print("error")
+    if status == 1:
+        print("error")
 
 
 if __name__ == '__main__':
