@@ -79,7 +79,7 @@ def publish(msg, status):
     client = mqtt.Client()
     client.username_pw_set(mqtt_username, mqtt_passsword)
     client.connect(mqtt_host, mqtt_port, 60)
-    client.publish('locker/error', payload=msg+", "+status,
+    client.publish('locker/error', payload=f'{msg}, {status}',
                    qos=0, retain=False)
     client.disconnect()
     print("error")
