@@ -86,7 +86,6 @@ def publish(msg, status):
 
 
 if __name__ == '__main__':
-    try:
         while True:
             cardData = pn532.read_mifare().get_data()[7:11]
             hexData = ""
@@ -113,5 +112,3 @@ if __name__ == '__main__':
                 publish(res.text, 0)
                 print(lockstatus[3])
                 print("ok")
-    except Exception as e:
-        print(e)
