@@ -1,0 +1,37 @@
+{
+    "apps": [
+        {
+            "name": "MonoLock - ReadCard",
+            "script": "ReadCard.py",
+            "instances": "1",
+            "wait_ready": true,
+            "autorestart": true,
+            "max_restarts": 10,
+            "interpreter": ".venv/bin/python",
+            "watch": false,
+            "time": true
+        },
+        {
+            "name": "MonoLock - ReadLockerStatus",
+            "script": "ReadLockerStatus.py",
+            "instances": "1",
+            "wait_ready": true,
+            "autorestart": true,
+            "max_restarts": 10,
+            "interpreter": ".venv/bin/python",
+            "watch": false,
+            "time": true
+        },
+        {
+            "name": "MonoLock - Unlock",
+            "script": "Unlock.py",
+            "instances": "1",
+            "wait_ready": true,
+            "autorestart": true,
+            "max_restarts": 10,
+            "interpreter": ".venv/bin/python",
+            "watch": false,
+            "time": true
+        }
+    ]
+}
