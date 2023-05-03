@@ -27,8 +27,20 @@ class Locker:
         print(f"[Locker] Cannot unlock locker id {id}.")
         return False
 
+    def readUnlocked(self, board):
+        msg = self.__makeRS485StatusMsg(board)
+        res = self.__writeRS485Msg(msg, 7)
+        return self.__makeUnlockedList(board, res)
+
     def __makeRS485Msg(self, lockerEncoding):
         data = ['8a', lockerEncoding[0:2], lockerEncoding[2:4], '11']
+        checksum = self.__check(data)
+        data.extend([f'{hex(checksum)}'.lstrip('0x')])
+        msg = bytes.fromhex("".join(data))
+        return msg
+
+    def __makeRS485StatusMsg(self, board):
+        data = ['80', hex(board).lstrip('0x').zfill(2), '00', '33']
         checksum = self.__check(data)
         data.extend([f'{hex(checksum)}'.lstrip('0x')])
         msg = bytes.fromhex("".join(data))
@@ -43,7 +55,7 @@ class Locker:
                 checksum = checksum ^ int(i, 16)
         return checksum
 
-    def __writeRS485Msg(self, msg):
+    def __writeRS485Msg(self, msg, read_size=5):
         try:
             ser = serial.rs485.RS485(port=self.__serial_port, baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
@@ -51,7 +63,7 @@ class Locker:
             ser.flushInput()  # flush input buffer
             ser.flushOutput()  # flush output buffer
             ser.write(msg)
-            lockstatus = re.findall(r'.{2}', ser.read(5).hex())
+            lockstatus = re.findall(r'.{2}', ser.read(read_size).hex())
             ser.close()
             print(f"[RS485] Locker Status: {lockstatus}")
             if (len(lockstatus) > 0 and self.__check(lockstatus) == 0):
@@ -64,3 +76,15 @@ class Locker:
                 pass
 
         sleep(0.5)
+
+    def __makeUnlockedList(self, board, data):
+        unlocked = []
+        for i in range(4, 1, -1):
+            bindata = format(int(data[i], 16), "08b")
+            print(board, bindata)
+            for j in range(8):
+                if bindata[7-j] == '0':
+                    unlocked.append("{:s}{:s}".format(
+                        hex(board).lstrip('0x').zfill(2),
+                        hex((j+1)+(i-4)*-8).lstrip('0x').zfill(2)))
+        return unlocked

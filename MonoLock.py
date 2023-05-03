@@ -22,14 +22,16 @@ class MonoLock:
         if not os.path.exists('data/'):
             os.mkdir('data/')
 
-    def publish_error(self, id, error):
-        client = mqtt.Client()
-        client.username_pw_set(self.__mqtt_username, self.__mqtt_passsword)
-        client.connect(self.__mqtt_host, self.__mqtt_port, 60)
-        client.publish('locker/error', payload=f'{id}, {error}', qos=0, retain=False)
-        client.disconnect()
-        print(f"[MQTT] Sent ID: {id} Error: {error}")
+        self.client = mqtt.Client()
+        self.client.username_pw_set(self.__mqtt_username, self.__mqtt_passsword)
+        self.client.connect(self.__mqtt_host, self.__mqtt_port, 60)
 
+    def publish_error(self, id, error):
+        self.client.publish('locker/error', payload=f'{id}, {error}', qos=0, retain=False)
+
+    def publish_status(self, status):
+        self.client.publish('locker/status', payload=status, qos=0, retain=False)
+        
     def get_id(self, card_number):
         try:
             res = requests.post(
