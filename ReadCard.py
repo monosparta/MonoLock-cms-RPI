@@ -29,7 +29,7 @@ _KeyEventReader = KeyEventReader()
 
 def makeRS485Msg(lockerEncoding):
     # data = ['8a', '01', '01', '11']
-    data = ['8a', lockerEncoding[0:2], lockerEncoding[2:4], '11']
+    data = ['8a', lockerEncoding[1:3], lockerEncoding[3:5], '11']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])
     msg = bytes.fromhex("".join(data))
