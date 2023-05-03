@@ -1,39 +1,37 @@
 #!/usr/bin/python3
 
+import json
+from py532lib.i2c import Pn532_i2c
 from time import sleep
 import paho.mqtt.client as mqtt
 import serial.rs485
-import evdev
-from KeyeventReader import KeyEventReader
 import requests
 import re
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
 token = os.getenv("TOKEN")
 sever_host = os.getenv("SERVER_HOST")
+sever_port = ""
+if(os.getenv("SERVER_PORT")):
+    sever_port = ":" + os.getenv("SERVER_PORT")
 sever_port = os.getenv("SERVER_PORT")
-if(sever_port != ""):
-    sever_port = ":" + sever_port
+mqtt_host = os.getenv("MQTT_HOST")
+mqtt_port = int(os.getenv("MQTT_PORT"))
+mqtt_username = os.getenv("MQTT_USERNAME")
+mqtt_passsword = os.getenv("MQTT_PASSWORD")
 
-mqtt_host= os.getenv("MQTT_HOST")
-mqtt_port= int(os.getenv("MQTT_PORT"))
-mqtt_username= os.getenv("MQTT_USERNAME")
-mqtt_passsword= os.getenv("MQTT_PASSWORD")
-serial_port = os.getenv("SERIAL_PORT")
+pn532 = Pn532_i2c()
+pn532.SAMconfigure()
 
-devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-
-_KeyEventReader = KeyEventReader()
 
 def makeRS485Msg(lockerEncoding):
-    # data = ['8a', '01', '01', '11']
     data = ['8a', lockerEncoding[0:2], lockerEncoding[2:4], '11']
     checksum = check(data)
     data.extend([f'{hex(checksum)}'.lstrip('0x')])
     msg = bytes.fromhex("".join(data))
     return msg
+
 
 def check(data):
     checksum = 0
@@ -44,10 +42,12 @@ def check(data):
             checksum = checksum ^ int(i, 16)
     return checksum
 
+
 def writeRS485Msg(msg):
-    while 1:
+    i = 5
+    while i:
         try:
-            ser = serial.rs485.RS485(port=serial_port, baudrate=9600)
+            ser = serial.rs485.RS485(port='/dev/ttyUSB0', baudrate=9600)
             ser.rs485_mode = serial.rs485.RS485Settings(False, True)
             ser.timeout = 2
             ser.flushInput()  # flush input buffer
@@ -55,67 +55,56 @@ def writeRS485Msg(msg):
             ser.write(msg)
             lockstatus = re.findall(r'.{2}', ser.read(5).hex())
             ser.close()
-            print(lockstatus,"write")
-            if( len(lockstatus) > 0 and check(lockstatus) == 0 ):
+            print(lockstatus, "write")
+            if(len(lockstatus) > 0 and check(lockstatus) == 0):
                 return lockstatus
         except Exception as e:
-            print("error",e)
+            print(e)
             try:
                 ser.close()
             except Exception as e:
                 pass
 
+        i -= 1
         sleep(0.5)
-  
-def pub(msg):
+    return 1
+
+
+def publish(msg, status):
     client = mqtt.Client()
     client.username_pw_set(mqtt_username, mqtt_passsword)
     client.connect(mqtt_host, mqtt_port, 60)
-    client.publish('locker/error', payload=msg,
+    client.publish('locker/error', payload=f'{msg}, {status}',
                    qos=0, retain=False)
     client.disconnect()
+    if status == 1:
+        print("error")
 
-for device in devices:
 
-    print(device.info.vendor)
-    print(device.info.product)
-
-    if device.info.vendor != 0xffff or device.info.product != 0x0035:
-        continue
-
-    print(device.info)
-    print(device.path, device.name, device.phys)
-
-    try:
-        device.grab()
+if __name__ == '__main__':
         while True:
-            barcode = _KeyEventReader.read_line(device)
+            cardData = pn532.read_mifare().get_data()[7:11]
+            hexData = ""
+            for data in cardData:
+                hexData = hex(data)[2:].zfill(2) + hexData
+            barcode = str(int(hexData, 16)).zfill(10)
             if barcode is not None and len(barcode) > 0:
                 print(barcode)
                 res = requests.post(
-                    sever_host + sever_port +'/api/RPIunlock',
+                    sever_host + sever_port + '/api/RPIunlock',
                     headers={'token': token},
                     data={"cardId": barcode}
                 )
-                print(res.text)
-                if(res.status_code>=400):
+                if(res.status_code >= 400):
+                    print(json.loads(res.text))
                     continue
 
+                print(res.text)
                 msg = makeRS485Msg(res.text)
-                for i in range(3):
-                    lockstatus = writeRS485Msg(msg)
-                    print(lockstatus[3])
-                    if(lockstatus[3] == '00'):
-                        break
-                    sleep(0.5)
-                    if(i==2):
-                        pub(res.text)
-                print("break")
-    except Exception as e:
-        print(e)
-    finally:
-        try:
-            device.ungrab()
-        except Exception as e:
-            pass
-    
+                lockstatus = writeRS485Msg(msg)
+                if(lockstatus == 1 or lockstatus[3] != '00'):
+                    publish(res.text, 1)
+                    continue
+                publish(res.text, 0)
+                print(lockstatus[3])
+                print("ok")
