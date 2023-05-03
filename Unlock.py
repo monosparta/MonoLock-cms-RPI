@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
     def on_connect(client, userdata, flags, rc):
         print(f"Connected with result code {rc}")
+        client.subscribe("locker/unlock", qos=0)
 
     def on_disconnect(client, userdata, rc):
         if rc != 0:
@@ -48,5 +49,4 @@ if __name__ == '__main__':
     client.on_disconnect = on_disconnect
     client.username_pw_set(mqtt_username, mqtt_passsword)
     client.connect(mqtt_host, mqtt_port, 60)
-    client.subscribe("locker/unlock", qos=0)
     client.loop_forever()
