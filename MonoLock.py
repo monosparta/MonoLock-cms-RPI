@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 
 class MonoLock:
+    __locker_path = 'data/locker.json'
+    __member_path = 'data/member.json'
+
     def __init__(self) -> None:
         load_dotenv()
         self.__mqtt_host = os.getenv("MQTT_HOST")
@@ -70,16 +73,41 @@ class MonoLock:
         print(f"[MonoLock] Found {card_number} -> {lock_id}")
         return lock_id
 
+    def get_offline_data(self):
+        try:
+            res = requests.get(
+                self.__sever_host + self.__sever_port + '/api/RPIList',
+                headers={'token': self.__token}
+            )
+            print(
+                f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
+            if (res.status_code == 200):
+                body = json.loads(res.text)
+                locker = {}
+                member = {}
+                for data in body:
+                    if data['lockerNo'] != None:
+                        locker[data['lockerNo']] = data['lockerEncoding']
+                    if data['user'] != None:
+                        member[data['user']['cardId']] = data['lockerNo']
+                with open(self.__locker_path, 'w') as fs:
+                    json.dump(locker, fs, indent=2)
+                with open(self.__member_path, 'w') as fs:
+                    json.dump(member, fs, indent=2)
+        except requests.ConnectionError as e:
+            print(f"[Request] Connection error: {e}")
+            return
+
     def __get_offline_id(self, card_number):
         print("[MonoLock] Enter offline mode.")
-        if not os.path.exists('data/locker.json') and not os.path.exists('data/member.json'):
+        if not os.path.exists(self.__locker_path) and not os.path.exists(self.__member_path):
             print("[MonoLock] No offline data found.")
             return
 
-        with open('data/locker.json', 'r') as fs:
+        with open(self.__locker_path, 'r') as fs:
             locker = json.load(fs)
 
-        with open('data/member.json', 'r') as fs:
+        with open(self.__member_path, 'r') as fs:
             member = json.load(fs)
 
         if card_number == '000':
