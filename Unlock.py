@@ -24,8 +24,7 @@ if __name__ == '__main__':
 
     def on_message(client, userdata, data):
         message = data.payload.decode()
-        print("Received message " + message + " on topic '"
-            + data.topic + "' with QoS " + str(data.qos))
+        print(f"[Unlock/MQTT] Received message {message} on topic '{data.topic}' with QoS {data.qos}")
         if not re.findall(r'^[\da-fA-F]{4}$', message):
             return
         
@@ -35,12 +34,12 @@ if __name__ == '__main__':
         publish_unlock_status(message, 0)
 
     def on_connect(client, userdata, flags, rc):
-        print(f"Connected with result code {rc}")
+        print(f"[Unlock/MQTT] Connected with result code {rc}")
         client.subscribe("locker/unlock", qos=0)
 
     def on_disconnect(client, userdata, rc):
         if rc != 0:
-            print("Unexpected MQTT disconnection. Will auto-reconnect")
+            print("[Unlock/MQTT] Unexpected MQTT disconnection. Will auto-reconnect")
 
 
     client = mqtt.Client()

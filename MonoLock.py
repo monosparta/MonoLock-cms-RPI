@@ -9,7 +9,7 @@ class MonoLock:
     __locker_path = 'data/locker.json'
     __member_path = 'data/member.json'
 
-    def __init__(self) -> None:
+    def __init__(self, with_mqtt = True) -> None:
         load_dotenv()
         self.__mqtt_host = os.getenv("MQTT_HOST")
         self.__mqtt_port = int(os.getenv("MQTT_PORT"))
@@ -25,11 +25,14 @@ class MonoLock:
         if not os.path.exists('data/'):
             os.mkdir('data/')
 
-        self.client = mqtt.Client()
-        self.client.on_connect = self.__on_mqtt_connect
-        self.client.on_disconnect = self.__on__mqtt_disconnect
-        self.client.username_pw_set(self.__mqtt_username, self.__mqtt_passsword)
-        self.__try_connect_mqtt()
+        if with_mqtt:
+            self.client = mqtt.Client()
+            self.client.on_connect = self.__on_mqtt_connect
+            self.client.on_disconnect = self.__on__mqtt_disconnect
+            self.client.username_pw_set(self.__mqtt_username, self.__mqtt_passsword)
+            self.__try_connect_mqtt()
+        else:
+            self.client = None
 
     def __try_connect_mqtt(self):
         try:
@@ -39,18 +42,22 @@ class MonoLock:
 
 
     def __on_mqtt_connect(client, userdata, flags, rc):
-        print(f"Connected with result code {rc}")
+        print(f"[MQTT] Connected with result code {rc}")
 
     def __on__mqtt_disconnect(client, userdata, rc):
         if rc != 0:
-            print("Unexpected MQTT disconnection. Will auto-reconnect on next publish")
+            print("[MQTT] Unexpected MQTT disconnection. Will auto-reconnect on next publish")
 
     def publish_error(self, id, error):
+        if self.client == None:
+            raise ValueError("MQTT client disabled")
         if not self.client.is_connected():
             self.__try_connect_mqtt()
         self.client.publish('locker/error', payload=f'{id}, {error}', qos=0, retain=False)
 
     def publish_status(self, status):
+        if self.client == None:
+            raise ValueError("MQTT client disabled")
         if not self.client.is_connected():
             self.__try_connect_mqtt()
         self.client.publish('locker/status', payload=status, qos=0, retain=False)
@@ -79,8 +86,7 @@ class MonoLock:
                 self.__sever_host + self.__sever_port + '/api/RPIList',
                 headers={'token': self.__token}
             )
-            print(
-                f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
+            print(f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
             if (res.status_code == 200):
                 body = json.loads(res.text)
                 locker = {}
@@ -94,9 +100,11 @@ class MonoLock:
                     json.dump(locker, fs, indent=2)
                 with open(self.__member_path, 'w') as fs:
                     json.dump(member, fs, indent=2)
+                return True
+            return False
         except requests.ConnectionError as e:
             print(f"[Request] Connection error: {e}")
-            return
+            return False
 
     def __get_offline_id(self, card_number):
         print("[MonoLock] Enter offline mode.")

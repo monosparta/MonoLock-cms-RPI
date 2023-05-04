@@ -32,6 +32,30 @@
             "interpreter": ".venv/bin/python",
             "watch": false,
             "time": true
+        },
+        {
+            "name": "MonoLock - OfflineData",
+            "script": "OfflineData.py",
+            "instances": "1",
+            "wait_ready": true,
+            "autorestart": true,
+            "max_restarts": 10,
+            "interpreter": ".venv/bin/python",
+            "watch": false,
+            "time": true
+        },
+        {
+            "name": "MonoLock - Scheduled OfflineData Update",
+            "script": "OfflineData.py",
+            "args": [
+                "--update-now"
+            ],
+            "instances": "1",
+            "autorestart": false,
+            "cron_restart": "0 * * * *",
+            "interpreter": ".venv/bin/python",
+            "watch": false,
+            "time": true
         }
     ]
 }
