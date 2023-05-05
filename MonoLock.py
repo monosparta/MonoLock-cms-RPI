@@ -63,7 +63,8 @@ class MonoLock:
             res = requests.post(
                 self.__sever_host + self.__sever_port + '/api/RPIunlock',
                 headers={'token': self.__token},
-                data={"cardId": card_number}
+                data={"cardId": card_number},
+                timeout=3
             )
             if (res.status_code >= 400):
                 print(f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
@@ -80,7 +81,8 @@ class MonoLock:
         try:
             res = requests.get(
                 self.__sever_host + self.__sever_port + '/api/RPIList',
-                headers={'token': self.__token}
+                headers={'token': self.__token},
+                timeout=3
             )
             print(f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
             if (res.status_code == 200):
