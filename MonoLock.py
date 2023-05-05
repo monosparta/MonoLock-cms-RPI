@@ -9,7 +9,7 @@ class MonoLock:
     __locker_path = 'data/locker.json'
     __member_path = 'data/member.json'
 
-    def __init__(self, with_mqtt = True) -> None:
+    def __init__(self, with_mqtt=True) -> None:
         load_dotenv()
         self.__mqtt_host = os.getenv("MQTT_HOST")
         self.__mqtt_port = int(os.getenv("MQTT_PORT"))
@@ -31,37 +31,33 @@ class MonoLock:
             self.client.on_disconnect = self.__on__mqtt_disconnect
             self.client.username_pw_set(self.__mqtt_username, self.__mqtt_passsword)
             self.__try_connect_mqtt()
+            self.client.loop_start()
         else:
             self.client = None
 
     def __try_connect_mqtt(self):
         try:
-            self.client.connect(self.__mqtt_host, self.__mqtt_port, 60)
+            self.client.connect_async(self.__mqtt_host, self.__mqtt_port, 60)
         except Exception as e:
             print(f"[MQTT] Connection failed: [{type(e)}] {e}")
 
-
-    def __on_mqtt_connect(client, userdata, flags, rc):
+    def __on_mqtt_connect(self, client, userdata, flags, rc):
         print(f"[MQTT] Connected with result code {rc}")
 
-    def __on__mqtt_disconnect(client, userdata, rc):
+    def __on__mqtt_disconnect(self, client, userdata, rc):
         if rc != 0:
             print("[MQTT] Unexpected MQTT disconnection. Will auto-reconnect on next publish")
 
     def publish_error(self, id, error):
         if self.client == None:
             raise ValueError("MQTT client disabled")
-        if not self.client.is_connected():
-            self.__try_connect_mqtt()
         self.client.publish('locker/error', payload=f'{id}, {error}', qos=0, retain=False)
 
     def publish_status(self, status):
         if self.client == None:
             raise ValueError("MQTT client disabled")
-        if not self.client.is_connected():
-            self.__try_connect_mqtt()
         self.client.publish('locker/status', payload=status, qos=0, retain=False)
-        
+
     def get_id(self, card_number):
         try:
             res = requests.post(
