@@ -66,6 +66,9 @@ class MonoLock:
                 data={"cardId": card_number},
                 timeout=3
             )
+            if (res.status_code >= 500):
+                print(f"[Request] Status: {res.status_code}")
+                return self.__get_offline_id(card_number)
             if (res.status_code >= 400):
                 print(f"[Request] Status: {res.status_code} Body: {json.loads(res.text)}")
                 print(f"[MonoLock] Could not find locker id by {card_number}")
