@@ -29,7 +29,9 @@ class Locker:
 
     def readUnlocked(self, board):
         msg = self.__makeRS485StatusMsg(board)
-        res = self.__writeRS485Msg(msg, 7)
+        res = None
+        while res == None:
+            res = self.__writeRS485Msg(msg, 7)
         return self.__makeUnlockedList(board, res)
 
     def __makeRS485Msg(self, lockerEncoding):
