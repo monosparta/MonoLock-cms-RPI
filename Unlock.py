@@ -20,7 +20,7 @@ if __name__ == '__main__':
     serial_port = os.getenv("SERIAL_PORT")
 
     def publish_unlock_status(id, error):
-        client.publish('locker/unlock', payload=f'{id},{error}', qos=0, retain=False)
+        client.publish(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + '/unlock', payload=f'{id},{error}', qos=0, retain=False)
 
     def on_message(client, userdata, data):
         message = data.payload.decode()
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     def on_connect(client, userdata, flags, rc):
         print(f"[Unlock/MQTT] Connected with result code {rc}")
-        client.subscribe("locker/unlock", qos=0)
+        client.subscribe(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + "/unlock", qos=0)
 
     def on_disconnect(client, userdata, rc):
         if rc != 0:

@@ -19,7 +19,7 @@ if __name__ == '__main__':
     mqtt_passsword= os.getenv("MQTT_PASSWORD")
 
     def publish_sync_status(error, mode='auto'):
-        client.publish('locker/offline', payload=f'{mode},{error}', qos=0, retain=False)
+        client.publish(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + '/offline', payload=f'{mode},{error}', qos=0, retain=False)
 
     client = mqtt.Client()
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
 
         def on_connect(client, userdata, flags, rc):
             print(f"[OfflineData/MQTT] Connected with result code {rc}")
-            client.subscribe("locker/offline", qos=0)
+            client.subscribe(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + "/offline", qos=0)
 
         def on_disconnect(client, userdata, rc):
             if rc != 0:
