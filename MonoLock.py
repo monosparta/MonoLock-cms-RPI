@@ -61,7 +61,7 @@ class MonoLock:
     def get_id(self, card_number):
         try:
             res = requests.post(
-                self.__sever_host + self.__sever_port + '/api/RPIunlock',
+                self.__sever_host + self.__sever_port + '/api/locker/piUnlock',
                 headers={'token': self.__token},
                 data={"cardId": card_number},
                 timeout=3
@@ -83,7 +83,7 @@ class MonoLock:
     def get_offline_data(self):
         try:
             res = requests.get(
-                self.__sever_host + self.__sever_port + '/api/RPIList',
+                self.__sever_host + self.__sever_port + '/api/locker/piSync',
                 headers={'token': self.__token},
                 timeout=3
             )
