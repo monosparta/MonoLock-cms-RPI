@@ -61,9 +61,9 @@ class MonoLock:
     def get_id(self, card_number):
         try:
             res = requests.post(
-                self.__sever_host + self.__sever_port + '/api/RPIunlock',
+                self.__sever_host + self.__sever_port + '/api/locker/piUnlock',
                 headers={'token': self.__token},
-                data={"cardId": card_number},
+                data={"card_no": card_number},
                 timeout=3
             )
             if (res.status_code >= 500):
@@ -83,7 +83,7 @@ class MonoLock:
     def get_offline_data(self):
         try:
             res = requests.get(
-                self.__sever_host + self.__sever_port + '/api/RPIList',
+                self.__sever_host + self.__sever_port + '/api/locker/piSync',
                 headers={'token': self.__token},
                 timeout=3
             )
@@ -93,10 +93,10 @@ class MonoLock:
                 locker = {}
                 member = {}
                 for data in body:
-                    if data['lockerNo'] != None:
-                        locker[data['lockerNo']] = data['lockerEncoding']
+                    if data['custom_id'] != None:
+                        locker[data['custom_id']] = data['encoding']
                     if data['user'] != None:
-                        member[data['user']['cardId']] = data['lockerNo']
+                        member[data['user']['card_no']] = data['custom_id']
                 with open(self.__locker_path, 'w') as fs:
                     json.dump(locker, fs, indent=2)
                 with open(self.__member_path, 'w') as fs:
