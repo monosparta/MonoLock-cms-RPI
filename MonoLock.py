@@ -51,12 +51,12 @@ class MonoLock:
     def publish_error(self, id, error):
         if self.client == None:
             raise ValueError("MQTT client disabled")
-        self.client.publish('locker/error', payload=f'{id}, {error}', qos=0, retain=False)
+        self.client.publish(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + '/error', payload=f'{id}, {error}', qos=0, retain=False)
 
     def publish_status(self, status):
         if self.client == None:
             raise ValueError("MQTT client disabled")
-        self.client.publish('locker/status', payload=status, qos=0, retain=False)
+        self.client.publish(os.getenv('MQTT_TOPIC_PREFIX', 'locker') + '/status', payload=status, qos=0, retain=False)
 
     def get_id(self, card_number):
         try:
